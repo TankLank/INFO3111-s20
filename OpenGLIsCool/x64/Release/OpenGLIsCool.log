@@ -1,0 +1,9 @@
+﻿  theMain.cpp
+C:\Users\pkear\Documents\School\$Semester4\INFO-3111 C++ Graphics\W1\OpenGLIsCool\OpenGLIsCool\theMain.cpp(173,12): warning C4101: 'fragment_shader': unreferenced local variable
+C:\Users\pkear\Documents\School\$Semester4\INFO-3111 C++ Graphics\W1\OpenGLIsCool\OpenGLIsCool\theMain.cpp(172,12): warning C4101: 'vertex_shader': unreferenced local variable
+  Generating code
+  1 of 543 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    2 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  OpenGLIsCool.vcxproj -> C:\Users\pkear\Documents\School\$Semester4\INFO-3111 C++ Graphics\W1\OpenGLIsCool\x64\Release\OpenGLIsCool.exe
