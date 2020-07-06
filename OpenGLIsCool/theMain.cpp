@@ -1,5 +1,7 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+//#include <glad/glad.h>
+//#include <GLFW/glfw3.h>
+#include "globalOpenGLStuff.h"
+
 //#include "linmath.h"
 #include <glm/glm.hpp>
 #include <glm/vec3.hpp> // glm::vec3
@@ -15,10 +17,16 @@
 #include <iostream>
 
 #include "cShaderManager.h"
+#include "cVAOManager.h"
 
-//fileio
-#include <fstream>
 #include <string>
+
+
+// Camera stuff
+glm::vec3 g_cameraEye = glm::vec3(0.0, 10.0, -50.0f);
+glm::vec3 g_cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+glm::vec3 g_upVector = glm::vec3(0.0f, 1.0f, 0.0f);
+
 
 struct sVertex
 {
@@ -27,8 +35,14 @@ struct sVertex
 };
 
 int g_numberOfVerts = 0;
-sVertex* g_pVertexBuffer = 0;
+sVertex* g_pVertexBuffer = 0;     // or NULL or nullptr
 
+
+
+//sVertex myArray[100];                       // STACK  
+//sVertex* pMyArray = new sVertex[100];       // HEAP 
+//delete [] pMyArray;
+//
 //sVertex vertices[6] =
 //{
 //    { -0.6f, -0.4f, 0.0f /*z*/, 1.0f, 0.0f, 0.0f },         // 0
@@ -42,6 +56,9 @@ sVertex* g_pVertexBuffer = 0;
 
 // Yes, it's global. Just be calm, for now.
 cShaderManager* g_pShaderManager = 0;       // NULL
+cVAOManager* g_pTheVAOManager = 0;          // NULL or nullptr
+
+bool g_isWireFrame = false;
 
 
 //static const char* vertex_shader_text =
@@ -55,7 +72,7 @@ cShaderManager* g_pShaderManager = 0;       // NULL
 //"    gl_Position = MVP * vec4(vPos, 1.0);\n"
 //"    color = vCol;\n"
 //"}\n";
-
+//
 //static const char* fragment_shader_text =
 //"#version 110\n"
 //"varying vec3 color;\n"
@@ -64,75 +81,76 @@ cShaderManager* g_pShaderManager = 0;       // NULL
 //"    gl_FragColor = vec4(color, 1.0);\n"
 //"}\n";
 
-void LoadPlyFile(std::string fileName) 
-{
-    std::ifstream theFile(fileName.c_str());
-
-    if (!theFile.is_open()) {
-        std::cout << "Oh no!" << std::endl;
-        return;
-    }
-
-    //look for the word "Vertex"
-    std::string temp;
-    bool keepReading = true;
-    while (keepReading) 
-    {
-        theFile >> temp;
-
-        if (temp == "vertex")
-        {
-            keepReading = false;
-        }
-    }//while
-
-    theFile >> ::g_numberOfVerts;
-    std::cout << "Number of vertices: " << ::g_numberOfVerts << std::endl;
-
-    //make the vertex buffer the size we need
-    //allocate this number of vertices
-    ::g_pVertexBuffer = new sVertex[::g_numberOfVerts];
-
-    keepReading = true;
-    while (keepReading)
-    {
-        theFile >> temp;
-
-        if (temp == "face")
-        {
-            keepReading = false;
-        }
-    }//while
-
-    int numTriangles = 0;
-    theFile >> numTriangles;
-    std::cout << "Number of faces: " << numTriangles << std::endl;
-
-    keepReading = true;
-    while (keepReading)
-    {
-        theFile >> temp;
-
-        if (temp == "end_header")
-        {
-            keepReading = false;
-        }
-    }//while
-
-
-    for (int index = 0; index != ::g_numberOfVerts; index++)
-    {
-        float x, y, z, r, g, b, a;
-        theFile >> x >> y >> z >> r >> g >> b >> a;
-
-        ::g_pVertexBuffer[index].x = x;
-        ::g_pVertexBuffer[index].y = y;
-        ::g_pVertexBuffer[index].z = z;
-        ::g_pVertexBuffer[index].r = r / 255.0f;
-        ::g_pVertexBuffer[index].g = g / 255.0f;
-        ::g_pVertexBuffer[index].b = b / 255.0f;
-    }
-}
+//void LoadPlyFile(std::string fileName)
+//{
+//    std::ifstream theFile(fileName.c_str());
+//
+//    if (!theFile.is_open())
+//    {
+//        std::cout << "Oh NO!!" << std::endl;
+//        return;
+//    }
+//
+//    // Look for the work "vertex"
+//    std::string temp;
+//
+//    bool bKeepReading = true;
+//
+//    while (bKeepReading)
+//    {
+//        theFile >> temp;    // Read next string
+//        if (temp == "vertex")
+//        {
+//            bKeepReading = false;
+//        }
+//    }//while
+//
+////    int numberOfVerts = 0;
+//    theFile >> ::g_numberOfVerts;
+//    std::cout << ::g_numberOfVerts << std::endl;
+//
+//    // Make the vertex buffer the size we need
+//    // Allocate "this" number of vertices
+//    ::g_pVertexBuffer = new sVertex[::g_numberOfVerts];
+//
+//    while (true)
+//    {
+//        theFile >> temp;    // Read next string
+//        if (temp == "face")
+//        {
+//            break;
+//        }
+//    }//while
+//
+//    int numberOfTriangles = 0;
+//    theFile >> numberOfTriangles;
+//    std::cout << numberOfTriangles << std::endl;
+//
+//
+//    while (true)
+//    {
+//        theFile >> temp;    // Read next string
+//        if (temp == "end_header")
+//        {
+//            break;
+//        }
+//    }//while
+//
+//    for (int index = 0; index != ::g_numberOfVerts; index++)
+//    {
+//        float x, y, z, r, g, b, a;
+//        theFile >> x >> y >> z >> r >> g >> b >> a;
+//
+//        ::g_pVertexBuffer[index].x = x;
+//        ::g_pVertexBuffer[index].y = y;
+//        ::g_pVertexBuffer[index].z = z;
+//        ::g_pVertexBuffer[index].r = r / 255.0f;
+//        ::g_pVertexBuffer[index].g = g / 255.0f;
+//        ::g_pVertexBuffer[index].b = b / 255.0f;
+//    }
+//
+//    return;
+//}
 
 static void error_callback(int error, const char* description)
 {
@@ -141,19 +159,61 @@ static void error_callback(int error, const char* description)
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    const float CAMERASPEED = 0.01f;
+    // WSAD - AD are "right and left"
+    //      - SW are "forward and back"
+    //      - QE are "up and down"
+
+    if (key == GLFW_KEY_A) // go "left"
+    {
+        ::g_cameraEye.x -= CAMERASPEED;
+    }
+
+    if (key == GLFW_KEY_D) // go "right"
+    {
+        ::g_cameraEye.x += CAMERASPEED;
+    }
+
+    if (key == GLFW_KEY_S) // go "back" (-ve Z)
+    {
+        ::g_cameraEye.z -= CAMERASPEED;
+    }
+
+    if (key == GLFW_KEY_W) // go "forward" (+ve Z)
+    {
+        ::g_cameraEye.z += CAMERASPEED;
+    }
+
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+    
         glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+
+    // Switches from wireframt to solid
+    if (key == GLFW_KEY_9 && action == GLFW_PRESS) { ::g_isWireFrame = true; }
+    if (key == GLFW_KEY_0 && action == GLFW_PRESS) { ::g_isWireFrame = false; }
+
+
+    // Print out camera location:
+    std::cout << "cam: "
+        << ::g_cameraEye.x << ", "
+        << ::g_cameraEye.y << ", "
+        << ::g_cameraEye.z << std::endl;
+
+
+    return;
 }
 
 int main(void)
 {
-    LoadPlyFile("assets/models/bun_zipper_res4_xyz_colour.ply");
+
+    //LoadPlyFile("assets/models/bun_zipper_res4_xyz_colour.ply");
 
     std::cout << "About to start..." << std::endl;
 
     GLFWwindow* window;
     GLuint vertex_buffer;
-    GLuint vertex_shader; 
+    GLuint vertex_shader;
     GLuint fragment_shader;
     GLuint program;
 
@@ -184,17 +244,19 @@ int main(void)
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glfwSwapInterval(1);
 
-    // NOTE: OpenGL error checks have been omitted for brevity
-    glGenBuffers(1, &vertex_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-    //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    //// NOTE: OpenGL error checks have been omitted for brevity
+    //glGenBuffers(1, &vertex_buffer);
+    //glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
 
-    unsigned int sizeOfVertBufferInBytes = sizeof(sVertex) * ::g_numberOfVerts;
+    ////sVertex vertices[6]
+    ////glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glBufferData(GL_ARRAY_BUFFER, 
-                    sizeOfVertBufferInBytes, //size in bytes
-                    ::g_pVertexBuffer,       //pointer to start of local array
-                    GL_STATIC_DRAW);
+    //unsigned int sizeOfVertBufferInBytes = sizeof(sVertex) * ::g_numberOfVerts;
+
+    //glBufferData(GL_ARRAY_BUFFER,
+    //    sizeOfVertBufferInBytes,      // Size in bytes
+    //    ::g_pVertexBuffer,            // Pointer to START of local array
+    //    GL_STATIC_DRAW);
 
     //cShaderManager* g_pShaderManager = 0;
     ::g_pShaderManager = new cShaderManager();          // HEAP  
@@ -205,13 +267,13 @@ int main(void)
     vertShader.fileName = "simpleVertex.glsl";
     fragShader.fileName = "simpleFragment.glsl";
 
-    if ( ! ::g_pShaderManager->createProgramFromFile( "SimpleShaderProg",
-                                                      vertShader, fragShader) )
+    if (!::g_pShaderManager->createProgramFromFile("SimpleShaderProg",
+        vertShader, fragShader))
     {
         // There was problem. 
         std::cout << "ERROR: can't make shader program because: " << std::endl;
         std::cout << ::g_pShaderManager->getLastError() << std::endl;
-        
+
         // Exit program (maybe add some cleanup code)
         return -1;
     }//createProgramFromFile
@@ -235,12 +297,34 @@ int main(void)
     vpos_location = glGetAttribLocation(program, "vPos");
     vcol_location = glGetAttribLocation(program, "vCol");
 
-    glEnableVertexAttribArray(vpos_location);
-    glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE,
-                          sizeof(sVertex), (void*)0);
-    glEnableVertexAttribArray(vcol_location);
-    glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(sVertex), (void*)(sizeof(float) * 2));
+    //glEnableVertexAttribArray(vpos_location);
+    //glVertexAttribPointer(vpos_location,
+    //    3, GL_FLOAT,
+    //    GL_FALSE,
+    //    sizeof(sVertex),      // "stride"
+    //    (void*)offsetof(sVertex, x));
+    ////struct sVertex
+    ////{
+    ////    float x, y, z;      // NEW! With Zs
+    ////    float r, g, b;
+    ////};
+
+    //glEnableVertexAttribArray(vcol_location);
+    //glVertexAttribPointer(vcol_location,
+    //    3, GL_FLOAT,
+    //    GL_FALSE,
+    //    sizeof(sVertex),               // "stride"
+    //    (void*)offsetof(sVertex, r)); // "offset" (how many bytes 'in' is this member?)
+
+    //Loads the models
+    ::g_pTheVAOManager = new cVAOManager();
+
+    sModelDrawInfo mdoBunny;
+    if (!::g_pTheVAOManager->LoadModelIntoVAO("assets/models/boxingring_xyz_rgba.ply", mdoBunny, program))
+    {
+        std::cout << "Error: " << ::g_pTheVAOManager->getLastError() << std::endl;
+    }
+    //endof loading models
 
     std::cout << "We're all set! Buckle up!" << std::endl;
 
@@ -253,33 +337,35 @@ int main(void)
         glfwGetFramebufferSize(window, &width, &height);
         ratio = width / (float)height;
         glViewport(0, 0, width, height);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
+        glCullFace(GL_BACK);
 
         //         mat4x4_identity(m);
         m = glm::mat4(1.0f);
 
         //mat4x4_rotate_Z(m, m, (float) glfwGetTime());
-        glm::mat4 rotateZ = glm::rotate(glm::mat4(1.0f),
-                                        (float)glfwGetTime(),
-                                        glm::vec3(0.0f, 0.0, 1.0f));
-
-       m = m * rotateZ;
+//        glm::mat4 rotateZ = glm::rotate(glm::mat4(1.0f),
+//                                        (float)glfwGetTime(),
+//                                        glm::vec3(0.0f, 0.0, 1.0f));
+//
+//       m = m * rotateZ;
 
         //mat4x4_ortho(p, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
         p = glm::perspective(0.6f,
-                             ratio,
-                             0.1f,
-                             1000.0f);
+            ratio,
+            0.1f,
+            1000.0f);
 
         v = glm::mat4(1.0f);
 
-        glm::vec3 cameraEye = glm::vec3(0.0, 0.0, -4.0f);
-        glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-        glm::vec3 upVector = glm::vec3(0.0f, 1.0f, 0.0f);
+        //glm::vec3 cameraEye = glm::vec3(0.0, 0.0, -4.0f);
+        //glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+        //glm::vec3 upVector = glm::vec3(0.0f, 1.0f, 0.0f);
 
-        v = glm::lookAt(cameraEye,
-                        cameraTarget,
-                        upVector);
+        v = glm::lookAt(::g_cameraEye,
+            ::g_cameraTarget,
+            ::g_upVector);
 
         //mat4x4_mul(mvp, p, m);
         mvp = p * v * m;
@@ -287,11 +373,35 @@ int main(void)
 
         glUseProgram(program);
 
+        //this will change the model to "wireframe" and "solid"
+        //in this example, it's changed by pressing "9" and "0" keys
+        if (::g_isWireFrame) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        }
+        else {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+
 
         //glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
         glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
 
-        glDrawArrays(GL_TRIANGLES, 0, ::g_numberOfVerts);
+        //        glDrawArrays(GL_TRIANGLES, 0, 3);
+       // glDrawArrays(GL_TRIANGLES, 0, ::g_numberOfVerts);
+
+        sModelDrawInfo mdoModelToDraw;
+        if (::g_pTheVAOManager->FindDrawInfoByModelName("assets/models/boxingring_xyz_rgba.ply", mdoModelToDraw))
+        {
+            glBindVertexArray(mdoModelToDraw.VAO_ID);
+
+            glDrawElements(GL_TRIANGLES, 
+                mdoModelToDraw.numberOfIndices, 
+                GL_UNSIGNED_INT, // how big the index values are
+                0);     // starting index for this model
+
+            glBindVertexArray(0);
+        }
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
