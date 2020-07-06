@@ -26,15 +26,18 @@ struct sVertex
     float r, g, b;
 };
 
-sVertex vertices[6] =
-{
-    { -0.6f, -0.4f, 0.0f /*z*/, 1.0f, 0.0f, 0.0f },         // 0
-    {  0.6f, -0.4f, 0.0f /*z*/, 0.0f, 1.0f, 0.0f },         // 1 
-    {  0.0f,  0.6f, 0.0f /*z*/, 0.0f, 0.0f, 1.0f },         // 2
-    { -0.6f,  0.4f, 0.0f /*z*/, 1.0f, 0.0f, 0.0f },         // 3
-    {  0.6f,  0.4f, 0.0f /*z*/, 0.0f, 1.0f, 0.0f },
-    {  0.0f,  1.6f, 0.0f /*z*/, 0.0f, 0.0f, 1.0f }          // 5
-};
+int g_numberOfVerts = 0;
+sVertex* g_pVertexBuffer = 0;
+
+//sVertex vertices[6] =
+//{
+//    { -0.6f, -0.4f, 0.0f /*z*/, 1.0f, 0.0f, 0.0f },         // 0
+//    {  0.6f, -0.4f, 0.0f /*z*/, 0.0f, 1.0f, 0.0f },         // 1 
+//    {  0.0f,  0.6f, 0.0f /*z*/, 0.0f, 0.0f, 1.0f },         // 2
+//    { -0.6f,  0.4f, 0.0f /*z*/, 1.0f, 0.0f, 0.0f },         // 3
+//    {  0.6f,  0.4f, 0.0f /*z*/, 0.0f, 1.0f, 0.0f },
+//    {  0.0f,  1.6f, 0.0f /*z*/, 0.0f, 0.0f, 1.0f }          // 5
+//};
 
 
 // Yes, it's global. Just be calm, for now.
@@ -61,8 +64,9 @@ cShaderManager* g_pShaderManager = 0;       // NULL
 //"    gl_FragColor = vec4(color, 1.0);\n"
 //"}\n";
 
-void DoTheFileStuff() {
-    std::ifstream theFile("assets/models/bun_zipper_res4_xyz_colour.ply");
+void LoadPlyFile(std::string fileName) 
+{
+    std::ifstream theFile(fileName.c_str());
 
     if (!theFile.is_open()) {
         std::cout << "Oh no!" << std::endl;
@@ -71,27 +75,32 @@ void DoTheFileStuff() {
 
     //look for the word "Vertex"
     std::string temp;
-    while (true) 
+    bool keepReading = true;
+    while (keepReading) 
     {
         theFile >> temp;
 
         if (temp == "vertex")
         {
-            break;
+            keepReading = false;
         }
     }//while
 
-    int numVerts = 0;
-    theFile >> numVerts;
-    std::cout << "Number of vertices: " << numVerts << std::endl;
+    theFile >> ::g_numberOfVerts;
+    std::cout << "Number of vertices: " << ::g_numberOfVerts << std::endl;
 
-    while (true)
+    //make the vertex buffer the size we need
+    //allocate this number of vertices
+    ::g_pVertexBuffer = new sVertex[::g_numberOfVerts];
+
+    keepReading = true;
+    while (keepReading)
     {
         theFile >> temp;
 
         if (temp == "face")
         {
-            break;
+            keepReading = false;
         }
     }//while
 
@@ -99,55 +108,30 @@ void DoTheFileStuff() {
     theFile >> numTriangles;
     std::cout << "Number of faces: " << numTriangles << std::endl;
 
-    while (true)
+    keepReading = true;
+    while (keepReading)
     {
         theFile >> temp;
 
         if (temp == "end_header")
         {
-            break;
+            keepReading = false;
         }
     }//while
 
-    float hr, hg, hb, lr, lg, lb = 0;
 
-    for (int index = 0; index != numVerts; index++)
+    for (int index = 0; index != ::g_numberOfVerts; index++)
     {
         float x, y, z, r, g, b, a;
         theFile >> x >> y >> z >> r >> g >> b >> a;
 
-        if (index == 0) {
-            hr = r / 255.0f;
-            hg = g / 255.0f;
-            hb = b / 255.0f;
-            lr = r / 255.0f;
-            lg = g / 255.0f;
-            lb = b / 255.0f;
-        }
-        
-        if (hr < (r / 255.0f) && (hg < (g / 255.0f)) && (hb < (b / 255.0f)))
-        {
-            hr = r / 255.0f;
-            hg = g / 255.0f;
-            hb = b / 255.0f;
-        }
-        if (lr > (r / 255.0f) && (lg > (g / 255.0f)) && (lb > (b / 255.0f)))
-        {
-            lr = r / 255.0f;
-            lg = g / 255.0f;
-            lb = b / 255.0f;
-        }
-
-
-       // std::cout << "g = " << g / 255.0f << std::endl;
+        ::g_pVertexBuffer[index].x = x;
+        ::g_pVertexBuffer[index].y = y;
+        ::g_pVertexBuffer[index].z = z;
+        ::g_pVertexBuffer[index].r = r / 255.0f;
+        ::g_pVertexBuffer[index].g = g / 255.0f;
+        ::g_pVertexBuffer[index].b = b / 255.0f;
     }
-
-    std::cout << "hr = " << hr << std::endl;
-    std::cout << "hg = " << hg << std::endl;
-    std::cout << "hb = " << hb << std::endl;
-    std::cout << "lr = " << lr << std::endl;
-    std::cout << "lg = " << lg << std::endl;
-    std::cout << "lb = " << lb << std::endl;
 }
 
 static void error_callback(int error, const char* description)
@@ -163,7 +147,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 
 int main(void)
 {
-    DoTheFileStuff();
+    LoadPlyFile("assets/models/bun_zipper_res4_xyz_colour.ply");
 
     std::cout << "About to start..." << std::endl;
 
@@ -203,7 +187,14 @@ int main(void)
     // NOTE: OpenGL error checks have been omitted for brevity
     glGenBuffers(1, &vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    unsigned int sizeOfVertBufferInBytes = sizeof(sVertex) * ::g_numberOfVerts;
+
+    glBufferData(GL_ARRAY_BUFFER, 
+                    sizeOfVertBufferInBytes, //size in bytes
+                    ::g_pVertexBuffer,       //pointer to start of local array
+                    GL_STATIC_DRAW);
 
     //cShaderManager* g_pShaderManager = 0;
     ::g_pShaderManager = new cShaderManager();          // HEAP  
@@ -246,10 +237,10 @@ int main(void)
 
     glEnableVertexAttribArray(vpos_location);
     glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE,
-                          sizeof(vertices[0]), (void*)0);
+                          sizeof(sVertex), (void*)0);
     glEnableVertexAttribArray(vcol_location);
     glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(vertices[0]), (void*)(sizeof(float) * 2));
+                          sizeof(sVertex), (void*)(sizeof(float) * 2));
 
     std::cout << "We're all set! Buckle up!" << std::endl;
 
@@ -300,7 +291,7 @@ int main(void)
         //glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
         glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
 
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, ::g_numberOfVerts);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
