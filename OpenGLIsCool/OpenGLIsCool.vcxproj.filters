@@ -9,15 +9,11 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="ShaderStuff">
-      <UniqueIdentifier>{91f9b3f4-d333-452f-8e4b-a855ff7e1d44}</UniqueIdentifier>
+    <Filter Include="Shader Stuff">
+      <UniqueIdentifier>{80036769-ef2f-4b05-9b5b-2994d90eea0f}</UniqueIdentifier>
     </Filter>
     <Filter Include="VAO and Model">
-      <UniqueIdentifier>{00ff06ab-faf0-492a-a4f1-5db997c952a0}</UniqueIdentifier>
+      <UniqueIdentifier>{d5277e28-bb31-4969-ad2d-269acb70b7f5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -27,19 +23,22 @@
     <ClCompile Include="glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cShaderManager.cpp">
-      <Filter>ShaderStuff</Filter>
-    </ClCompile>
     <ClCompile Include="cShader.cpp">
-      <Filter>ShaderStuff</Filter>
+      <Filter>Shader Stuff</Filter>
+    </ClCompile>
+    <ClCompile Include="cShaderManager.cpp">
+      <Filter>Shader Stuff</Filter>
     </ClCompile>
     <ClCompile Include="cVAOManager.cpp">
       <Filter>VAO and Model</Filter>
     </ClCompile>
+    <ClCompile Include="cMeshObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cShaderManager.h">
-      <Filter>ShaderStuff</Filter>
+      <Filter>Shader Stuff</Filter>
     </ClInclude>
     <ClInclude Include="cVAOManager.h">
       <Filter>VAO and Model</Filter>
@@ -47,13 +46,16 @@
     <ClInclude Include="globalOpenGLStuff.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="cMeshObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="simpleFragment.glsl">
-      <Filter>ShaderStuff</Filter>
+      <Filter>Shader Stuff</Filter>
     </None>
     <None Include="simpleVertex.glsl">
-      <Filter>ShaderStuff</Filter>
+      <Filter>Shader Stuff</Filter>
     </None>
   </ItemGroup>
 </Project>
