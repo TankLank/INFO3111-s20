@@ -1,11 +1,11 @@
 ﻿  theMain.cpp
-C:\Users\pkear\Documents\School\$Semester4\INFO-3111 C++ Graphics\$MyCode\OpenGLIsCool\OpenGLIsCool\theMain.cpp(186,58): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\pkear\Documents\School\$Semester4\INFO-3111 C++ Graphics\$MyCode\OpenGLIsCool\OpenGLIsCool\theMain.cpp(185,58): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
 C:\Users\pkear\Documents\School\$Semester4\INFO-3111 C++ Graphics\$MyCode\OpenGLIsCool\OpenGLIsCool\theMain.cpp(395,12): warning C4101: 'fragment_shader': unreferenced local variable
 C:\Users\pkear\Documents\School\$Semester4\INFO-3111 C++ Graphics\$MyCode\OpenGLIsCool\OpenGLIsCool\theMain.cpp(394,12): warning C4101: 'vertex_shader': unreferenced local variable
 C:\Users\pkear\Documents\School\$Semester4\INFO-3111 C++ Graphics\$MyCode\OpenGLIsCool\OpenGLIsCool\theMain.cpp(393,12): warning C4101: 'vertex_buffer': unreferenced local variable
   Generating code
   1 of 769 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    2 functions had inline decision re-evaluated but remain unchanged
+    8 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   OpenGLIsCool.vcxproj -> C:\Users\pkear\Documents\School\$Semester4\INFO-3111 C++ Graphics\$MyCode\OpenGLIsCool\x64\Release\OpenGLIsCool.exe

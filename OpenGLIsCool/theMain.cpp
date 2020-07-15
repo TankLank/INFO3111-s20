@@ -30,6 +30,8 @@ glm::vec3 g_upVector = glm::vec3(0.0f, 1.0f, 0.0f);
 // The objects we are drawing go in here! Hazzah!
 std::vector< cMeshObject* > g_pVecObjects;
 
+int selectedObject = 0;
+
 //struct sVertex
 //{
 //    float x, y, z;      // NEW! With Zs
@@ -58,7 +60,6 @@ std::vector< cMeshObject* > g_pVecObjects;
 
 // Yes, it's global. Just be calm, for now.
 cShaderManager* g_pShaderManager = 0;       // NULL
-
 cVAOManager* g_pTheVAOManager = 0;          // NULL or nullptr
 
 bool g_isWireFrame = false;
@@ -159,8 +160,6 @@ static void error_callback(int error, const char* description)
 {
     fprintf(stderr, "Error: %s\n", description);
 }
-
-int selectedObject = 0;
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -279,19 +278,18 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     }
 
     // Switches from wireframe to solid (glPolygonMode)
-    if (key == GLFW_KEY_9 && action == GLFW_PRESS ) {::g_isWireFrame = true; }
-    if (key == GLFW_KEY_0 && action == GLFW_PRESS ) {::g_isWireFrame = false; }
+    if (key == GLFW_KEY_9 && action == GLFW_PRESS ) { ::g_pVecObjects[selectedObject]->isWireframe = true; }
+    if (key == GLFW_KEY_0 && action == GLFW_PRESS ) { ::g_pVecObjects[selectedObject]->isWireframe = false; }
 
 
-    //save
-    if (key == GLFW_KEY_Z && action == GLFW_PRESS)
+    //saves the vector info
+    if (key == GLFW_KEY_M && action == GLFW_PRESS)
     {
-        std::string fileName = "assets/models/modelVector.txt";
+        std::string fileName = "assets/models/model.txt";
         std::ofstream thePlyFile(fileName.c_str());
         if (!thePlyFile.is_open())
         {	// Something is wrong...
-            std::stringstream ssError;
-            ssError << "Can't open >" << fileName << "< file." << std::endl;
+            std::cout << "Can't open >" << fileName << "< file." << std::endl;
         }
 
         for (std::vector<cMeshObject*>::iterator it_pCurMesh = ::g_pVecObjects.begin();
@@ -324,17 +322,18 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
             thePlyFile << pCurMesh->scale;
             thePlyFile << " ";
             thePlyFile << pCurMesh->isWireframe;
-
+            thePlyFile << std::endl;
         }
+        std::cout << "File written successfully to " << fileName << std::endl;
         thePlyFile.close();
     }
 
-    //load
-    if (key == GLFW_KEY_PERIOD && action == GLFW_PRESS)
+    //loads the vector info
+    if (key == GLFW_KEY_N && action == GLFW_PRESS)
     {
         ::g_pVecObjects.clear();
 
-        std::string fileName = "assets/models/modelVector.txt";
+        std::string fileName = "assets/models/model.txt";
         std::ifstream thePlyFile(fileName.c_str());
         if (!thePlyFile.is_open())
         {	// Something is wrong...
@@ -347,7 +346,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
             std::string temp;
             if (thePlyFile >> temp)
             {
-                //basically create a cmeshobject and laod it ino the vector
+                //creates a cMeshObject and loads it ino the vector
                 cMeshObject* newMesh = new cMeshObject();
                 newMesh->meshName = temp;
                 thePlyFile >> newMesh->position.x;
@@ -370,6 +369,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
                 break;
             }
         }
+        std::cout << "File loaded successfully from " << fileName << std::endl;
         thePlyFile.close();
     }
 
@@ -498,113 +498,124 @@ int main(void)
     ::g_pTheVAOManager = new cVAOManager();
 
     sModelDrawInfo mdiArena;
-    if ( ! ::g_pTheVAOManager->LoadModelIntoVAO( "assets/models/free_arena_ASCII_xyz_rgba.ply",
+    if ( ! ::g_pTheVAOManager->LoadModelIntoVAO( "assets/models/free_arena_ASCII_xyz_n_rgba_uv.ply",
                                                  mdiArena, program) )
     {
         std::cout << "Error: " << ::g_pTheVAOManager->getLastError() << std::endl;
     }
-
     {// Load the bunny, too
         sModelDrawInfo mdiRabbit;
-        ::g_pTheVAOManager->LoadModelIntoVAO( "assets/models/bun_zipper_res4_xyz_colour.ply", 
+        ::g_pTheVAOManager->LoadModelIntoVAO( "assets/models/bun_zipper_res4_xyz_n_rgba_uv.ply", 
                                               mdiRabbit, program );
     }
     {// Load the space shuttle, too
         sModelDrawInfo mdiSpaceShuttle;
-        ::g_pTheVAOManager->LoadModelIntoVAO( "assets/models/SpaceShuttleOrbiter_xyz_rgba.ply", 
+        ::g_pTheVAOManager->LoadModelIntoVAO( "assets/models/SpaceShuttleOrbiter_xyz_n_rgba_uv.ply", 
                                               mdiSpaceShuttle, program );
     }
     {
         sModelDrawInfo mdiCow;
-        ::g_pTheVAOManager->LoadModelIntoVAO("assets/models/cow_xyz_rgba.ply",
+        ::g_pTheVAOManager->LoadModelIntoVAO("assets/models/cow_xyz_n_rgba_uv.ply",
             mdiCow, program);
     }
     {
         sModelDrawInfo mdiPalmTree;
-        ::g_pTheVAOManager->LoadModelIntoVAO("assets/models/palm-realviz_xyz_rgba.ply",
+        ::g_pTheVAOManager->LoadModelIntoVAO("assets/models/palm-realviz_xyz_n_rgba_uv.ply",
             mdiPalmTree, program);
     }
     {
         sModelDrawInfo mdiJet;
-        ::g_pTheVAOManager->LoadModelIntoVAO("assets/models/ssj100_xyz_rgba.ply", 
+        ::g_pTheVAOManager->LoadModelIntoVAO("assets/models/ssj100_xyz_n_rgba_uv.ply", 
             mdiJet, program);
     }
     {
         sModelDrawInfo mdiDolphin;
-        ::g_pTheVAOManager->LoadModelIntoVAO("assets/models/dolphin_xyz_rgba.ply",
+        ::g_pTheVAOManager->LoadModelIntoVAO("assets/models/dolphin_xyz_n_rgba_uv.ply",
             mdiDolphin, program);
     }
     {
         sModelDrawInfo mdiHomer;
-        ::g_pTheVAOManager->LoadModelIntoVAO("assets/models/homer_xyz_rgba.ply",
+        ::g_pTheVAOManager->LoadModelIntoVAO("assets/models/homer_xyz_n_rgba_uv.ply",
             mdiHomer, program);
-
+    }
+    {
+        sModelDrawInfo mdiTerrain;
+        ::g_pTheVAOManager->LoadModelIntoVAO("assets/models/Mountain_Terrain_xyz_n_rgba_uv.ply",
+            mdiTerrain, program);
     }
     // ENDOF: Loading the models
 
     // Add to the list of things to draw
     cMeshObject* pShuttle01 = new cMeshObject();
-    pShuttle01->meshName = "assets/models/SpaceShuttleOrbiter_xyz_rgba.ply";
+    pShuttle01->meshName = "assets/models/SpaceShuttleOrbiter_xyz_n_rgba_uv.ply";
     pShuttle01->position.x = -10.0f;
     pShuttle01->scale = 1.0f/100.0f;    // 100th of it's normal size
+    pShuttle01->colourRGBA = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
     //pShuttle01->orientation
     ::g_pVecObjects.push_back( pShuttle01 );
 
     cMeshObject* pShuttle02 = new cMeshObject();
-    pShuttle02->meshName = "assets/models/SpaceShuttleOrbiter_xyz_rgba.ply";
+    pShuttle02->meshName = "assets/models/SpaceShuttleOrbiter_xyz_n_rgba_uv.ply";
     pShuttle02->position.x = +10.0f;
     pShuttle02->scale = 1.0f/100.0f;    // 100th of it's normal size
+    pShuttle02->colourRGBA = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
     ::g_pVecObjects.push_back( pShuttle02 );
 
     cMeshObject* pBunny = new cMeshObject();
-    pBunny->meshName = "assets/models/bun_zipper_res4_xyz_colour.ply";
+    pBunny->meshName = "assets/models/bun_zipper_res4_xyz_n_rgba_uv.ply";
     pBunny->position.y = +10.0f;
     pBunny->scale = 25.0f;    // 25x bigger
+    pBunny->colourRGBA = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
     ::g_pVecObjects.push_back(pBunny);
 
     cMeshObject* pArena = new cMeshObject();
-    pArena->meshName = "assets/models/free_arena_ASCII_xyz_rgba.ply";
+    pArena->meshName = "assets/models/free_arena_ASCII_xyz_n_rgba_uv.ply";
     pArena->position.y = -20.0f;
     pArena->scale = 1.0f;
+    pArena->colourRGBA = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
     ::g_pVecObjects.push_back(pArena);
 
     cMeshObject* pCow = new cMeshObject();
-    pCow->meshName = "assets/models/cow_xyz_rgba.ply";
+    pCow->meshName = "assets/models/cow_xyz_n_rgba_uv.ply";
     pCow->position.y = +20.0f;
     pCow->scale = 1.0f;
     ::g_pVecObjects.push_back(pCow);
 
     cMeshObject* pHomer1 = new cMeshObject();
-    pHomer1->meshName = "assets/models/homer_xyz_rgba.ply";
+    pHomer1->meshName = "assets/models/homer_xyz_n_rgba_uv.ply";
     pHomer1->position.x = +20.0f;
     pHomer1->scale = 10.0f;
     ::g_pVecObjects.push_back(pHomer1);
 
     cMeshObject* pHomer2 = new cMeshObject();
-    pHomer2->meshName = "assets/models/homer_xyz_rgba.ply";
+    pHomer2->meshName = "assets/models/homer_xyz_n_rgba_uv.ply";
     pHomer2->position.x = -20.0f;
     pHomer2->scale = 10.0f;
     ::g_pVecObjects.push_back(pHomer2);
 
     cMeshObject* pJet1 = new cMeshObject();
-    pJet1->meshName = "assets/models/ssj100_xyz_rgba.ply";
+    pJet1->meshName = "assets/models/ssj100_xyz_n_rgba_uv.ply";
     pJet1->position.x = -30.0f;
     pJet1->scale = 10.0f;
     ::g_pVecObjects.push_back(pJet1);
 
     cMeshObject* pJet2 = new cMeshObject();
-    pJet2->meshName = "assets/models/ssj100_xyz_rgba.ply";
+    pJet2->meshName = "assets/models/ssj100_xyz_n_rgba_uv.ply";
     pJet2->position.x = 30.0f;
     pJet2->scale = 10.0f;
     ::g_pVecObjects.push_back(pJet2);
 
-    cMeshObject* pDolphin = new cMeshObject();
-    pDolphin->meshName = "assets/models/dolphin_xyz_rgba.ply";
-    pDolphin->position.x = 20.0f;
-    pDolphin->position.y = 25.0f;
-    pDolphin->scale = 0.01f;
-    ::g_pVecObjects.push_back(pDolphin);
+    cMeshObject* pMountain = new cMeshObject();
+    pMountain->meshName = "assets/models/Mountain_Terrain_xyz_n_rgba_uv.ply";
+    pMountain->position.y = 0.0f;
+    pMountain->scale = 1.0f;
+    pMountain->isWireframe = true;
+    ::g_pVecObjects.push_back(pMountain);
 
+    //Get the locations for the "uniform variables"
+    // uniform vec4 objectColour;
+
+    GLint objectColour_LocID = glGetUniformLocation(program, "objectColour");
 
     std::cout << "We're all set! Buckle up!" << std::endl;
 
@@ -738,8 +749,9 @@ int main(void)
             //glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
             glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
 
-    //        glDrawArrays(GL_TRIANGLES, 0, 3);
-     //       glDrawArrays(GL_TRIANGLES, 0, ::g_numberOfVerts);
+            // set the uniform colour info
+            glUniform4f(objectColour_LocID, pCurMesh->colourRGBA.r, pCurMesh->colourRGBA.g,
+                                            pCurMesh->colourRGBA.b, pCurMesh->colourRGBA.a);
 
             sModelDrawInfo mdoModelToDraw;
             if (::g_pTheVAOManager->FindDrawInfoByModelName( pCurMesh->meshName,
@@ -759,9 +771,7 @@ int main(void)
         // ****************************
         // **** END OF: Draw scene ****
         // ****************************
-
-
-
+   
         glfwSwapBuffers(window);
         glfwPollEvents();
 

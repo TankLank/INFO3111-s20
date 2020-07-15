@@ -214,7 +214,10 @@ bool cVAOManager::m_LoadTheModel(std::string fileName,
 	struct sVertPly
 	{
 		glm::vec3 pos;
+		glm::vec3 normal; //ADDED
 		glm::vec4 colour;
+		float tex_u;
+		float tex_v;
 	};
 
 	std::vector<sVertPly> vecTempPlyVerts;
@@ -226,16 +229,7 @@ bool cVAOManager::m_LoadTheModel(std::string fileName,
 	{
 		thePlyFile >> tempVert.pos.x >> tempVert.pos.y >> tempVert.pos.z;
 		
-
-
-		//tempVert.pos.x += 25.0f;
-		//tempVert.pos.y += 0.0f;
-		//tempVert.pos.z += 0.0f;		
-		//
-		//tempVert.pos.x /= 100.0f;
-		//tempVert.pos.y /= 100.0f;
-		//tempVert.pos.z /= 100.0f;
-
+		thePlyFile >> tempVert.normal.x >> tempVert.normal.y >> tempVert.normal.z;
 
 
 		thePlyFile >> tempVert.colour.x >> tempVert.colour.y
@@ -245,6 +239,8 @@ bool cVAOManager::m_LoadTheModel(std::string fileName,
 		tempVert.colour.x /= 255.0f;
 		tempVert.colour.y /= 255.0f;
 		tempVert.colour.z /= 255.0f;
+
+		thePlyFile >> tempVert.tex_u >> tempVert.tex_v;
 
 		// Add too... what? 
 		vecTempPlyVerts.push_back(tempVert);
