@@ -1,10 +1,10 @@
- assets/models/SpaceShuttleOrbiter_xyz_rgba.ply -10 11 0 0 0 0  1 0 0 0 0.01 0
- assets/models/SpaceShuttleOrbiter_xyz_rgba.ply 21 15 0 0 0 0  1 0 0 0 0.01 0
- assets/models/bun_zipper_res4_xyz_colour.ply 0 10 0 0 0 0  1 0 0 0 25 0
- assets/models/free_arena_ASCII_xyz_rgba.ply 0 -20 0 0 0 0  1 0 0 0 1 0
- assets/models/cow_xyz_rgba.ply 0 20 0 0 0 0  1 0 0 0 1 0
- assets/models/homer_xyz_rgba.ply 20 0 0 0 0 0  1 0 0 0 10 0
- assets/models/homer_xyz_rgba.ply -20 0 0 0 0 0  1 0 0 0 10 0
- assets/models/ssj100_xyz_rgba.ply -30 0 0 0 0 0  1 0 0 0 10 0
- assets/models/ssj100_xyz_rgba.ply 30 0 0 0 0 0  1 0 0 0 10 0
- assets/models/dolphin_xyz_rgba.ply 20 25 0 0 0 0  1 0 0 0 0.01 0
+ assets/models/SpaceShuttleOrbiter_xyz_n_rgba_uv.ply -18 11 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0.0225 0
+ assets/models/SpaceShuttleOrbiter_xyz_n_rgba_uv.ply 10 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0.01 0
+ assets/models/bun_zipper_res4_xyz_n_rgba_uv.ply 0 10 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 25 0
+ assets/models/free_arena_ASCII_xyz_n_rgba_uv.ply -9 -27 0 0 0 0 0 0 1 0 0 1 0 0 0 0 0 1 0
+ assets/models/cow_xyz_n_rgba_uv.ply -2 20 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0
+ assets/models/homer_xyz_n_rgba_uv.ply 18 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 10 0
+ assets/models/homer_xyz_n_rgba_uv.ply -28 -2 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 10 0
+ assets/models/ssj100_xyz_n_rgba_uv.ply -34 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 10 0
+ assets/models/ssj100_xyz_n_rgba_uv.ply 24 6 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 10 0
+ assets/models/Mountain_Terrain_xyz_n_rgba_uv.ply 0 -48 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 1 0

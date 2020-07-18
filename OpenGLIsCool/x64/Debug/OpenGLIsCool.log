@@ -1,6 +1,6 @@
 ﻿  theMain.cpp
-C:\Users\pkear\Documents\School\$Semester4\INFO-3111 C++ Graphics\$MyCode\OpenGLIsCool\OpenGLIsCool\theMain.cpp(185,58): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\pkear\Documents\School\$Semester4\INFO-3111 C++ Graphics\$MyCode\OpenGLIsCool\OpenGLIsCool\theMain.cpp(395,12): warning C4101: 'fragment_shader': unreferenced local variable
-C:\Users\pkear\Documents\School\$Semester4\INFO-3111 C++ Graphics\$MyCode\OpenGLIsCool\OpenGLIsCool\theMain.cpp(394,12): warning C4101: 'vertex_shader': unreferenced local variable
-C:\Users\pkear\Documents\School\$Semester4\INFO-3111 C++ Graphics\$MyCode\OpenGLIsCool\OpenGLIsCool\theMain.cpp(393,12): warning C4101: 'vertex_buffer': unreferenced local variable
+C:\Users\pkear\Documents\School\$Semester4\INFO-3111 C++ Graphics\$MyCode\OpenGLIsCool\OpenGLIsCool\theMain.cpp(363,58): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\pkear\Documents\School\$Semester4\INFO-3111 C++ Graphics\$MyCode\OpenGLIsCool\OpenGLIsCool\theMain.cpp(519,12): warning C4101: 'fragment_shader': unreferenced local variable
+C:\Users\pkear\Documents\School\$Semester4\INFO-3111 C++ Graphics\$MyCode\OpenGLIsCool\OpenGLIsCool\theMain.cpp(518,12): warning C4101: 'vertex_shader': unreferenced local variable
+C:\Users\pkear\Documents\School\$Semester4\INFO-3111 C++ Graphics\$MyCode\OpenGLIsCool\OpenGLIsCool\theMain.cpp(517,12): warning C4101: 'vertex_buffer': unreferenced local variable
   OpenGLIsCool.vcxproj -> C:\Users\pkear\Documents\School\$Semester4\INFO-3111 C++ Graphics\$MyCode\OpenGLIsCool\x64\Debug\OpenGLIsCool.exe

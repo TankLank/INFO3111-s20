@@ -11,8 +11,10 @@ public:
 	cMeshObject();
 	~cMeshObject()  {};
 	std::string meshName;
-	glm::vec3 position;		//xyz
+	glm::vec4 position;		//xyz
+	glm::vec4 normal;		//normal
 	glm::vec4 colourRGBA;	//RGBA
+	glm::vec2 textUV;		//textures
 	glm::vec3 orientation;	//Rotation:XYZ
 	float scale;
 	bool isWireframe;

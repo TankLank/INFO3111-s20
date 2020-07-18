@@ -4,6 +4,7 @@
 
 #include <fstream>
 
+#include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
@@ -85,7 +86,7 @@ bool cVAOManager::LoadModelIntoVAO(
 	glBindBuffer(GL_ARRAY_BUFFER, drawInfo.VertexBufferID);
 	// sVert vertices[3]
 	glBufferData( GL_ARRAY_BUFFER, 
-				  sizeof(sVert) * drawInfo.numberOfVertices,	// ::g_NumberOfVertsToDraw,	// sizeof(vertices), 
+				  sizeof(sVert_xyzw_n_rgba_UVx2) * drawInfo.numberOfVertices,	// ::g_NumberOfVertsToDraw,	// sizeof(vertices), 
 				  (GLvoid*) drawInfo.pVertices,							// pVertices,			//vertices, 
 				  GL_STATIC_DRAW );
 
@@ -104,20 +105,40 @@ bool cVAOManager::LoadModelIntoVAO(
 	// Set the vertex attributes.
 
 	GLint vpos_location = glGetAttribLocation(shaderProgramID, "vPos");	// program
+	GLint vnorm_location = glGetAttribLocation(shaderProgramID, "vNormal"); // NEW (in shader)
 	GLint vcol_location = glGetAttribLocation(shaderProgramID, "vCol");	// program;
+	GLint vUVx2_location = glGetAttribLocation(shaderProgramID, "vUVx2"); // NEW (in shader)
 
 	// Set the vertex attributes for this shader
 	glEnableVertexAttribArray(vpos_location);	// vPos
-	glVertexAttribPointer( vpos_location, 3,		// vPos
+	glVertexAttribPointer( vpos_location, 4,		// vPos
 						   GL_FLOAT, GL_FALSE,
-						   sizeof(float) * 6, 
-						   ( void* )0);
+						   sizeof(sVert_xyzw_n_rgba_UVx2),
+						   ( void* )offsetof(sVert_xyzw_n_rgba_UVx2, x) );
+							// offfsetof() returns how many bytes into the structure
+							// we'll find the "x" member
+
+	// Set the vertex attributes for this shader
+	glEnableVertexAttribArray(vnorm_location);	// vNormal
+	glVertexAttribPointer(vnorm_location, 4,		// vec4
+		GL_FLOAT, GL_FALSE,
+		sizeof(sVert_xyzw_n_rgba_UVx2),
+		(void*)offsetof(sVert_xyzw_n_rgba_UVx2, nx));
+	// offfsetof() returns how many bytes into the structure
+	// we'll find the "nx" member
 
 	glEnableVertexAttribArray(vcol_location);	// vCol
-	glVertexAttribPointer( vcol_location, 3,		// vCol
+	glVertexAttribPointer( vcol_location, 4,		// vCol
 						   GL_FLOAT, GL_FALSE,
-						   sizeof(float) * 6, 
-						   ( void* )( sizeof(float) * 3 ));
+						   sizeof(sVert_xyzw_n_rgba_UVx2),
+						   ( void* )offsetof(sVert_xyzw_n_rgba_UVx2, r) );
+
+	// Set the vertex attributes for this shader
+	glEnableVertexAttribArray(vUVx2_location);	// vUVx2
+	glVertexAttribPointer(vUVx2_location, 4,		// vec4
+		GL_FLOAT, GL_FALSE,
+		sizeof(sVert_xyzw_n_rgba_UVx2),
+		(void*)offsetof(sVert_xyzw_n_rgba_UVx2, u1));
 
 	// Now that all the parts are set up, set the VAO to zero
 	glBindVertexArray(0);
@@ -126,7 +147,9 @@ bool cVAOManager::LoadModelIntoVAO(
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	glDisableVertexAttribArray(vpos_location);
+	glDisableVertexAttribArray(vnorm_location);
 	glDisableVertexAttribArray(vcol_location);
+	glDisableVertexAttribArray(vUVx2_location);
 
 
 	// Store the draw information into the map
@@ -216,8 +239,7 @@ bool cVAOManager::m_LoadTheModel(std::string fileName,
 		glm::vec3 pos;
 		glm::vec3 normal; //ADDED
 		glm::vec4 colour;
-		float tex_u;
-		float tex_v;
+		glm::vec2 textUV;
 	};
 
 	std::vector<sVertPly> vecTempPlyVerts;
@@ -240,7 +262,7 @@ bool cVAOManager::m_LoadTheModel(std::string fileName,
 		tempVert.colour.y /= 255.0f;
 		tempVert.colour.z /= 255.0f;
 
-		thePlyFile >> tempVert.tex_u >> tempVert.tex_v;
+		thePlyFile >> tempVert.textUV.x >> tempVert.textUV.y;
 
 		// Add too... what? 
 		vecTempPlyVerts.push_back(tempVert);
@@ -251,7 +273,7 @@ bool cVAOManager::m_LoadTheModel(std::string fileName,
 	// - sVertPly was made to match the file format
 	// - sVert was made to match the shader vertex attrib format
 
-	drawInfo.pVertices = new sVert[drawInfo.numberOfVertices];
+	drawInfo.pVertices = new sVert_xyzw_n_rgba_UVx2[drawInfo.numberOfVertices];
 
 	// Optional clear array to zero 
 	//memset( drawInfo.pVertices, 0, sizeof(sVert) * drawInfo.numberOfVertices);
@@ -261,10 +283,23 @@ bool cVAOManager::m_LoadTheModel(std::string fileName,
 		drawInfo.pVertices[index].x = vecTempPlyVerts[index].pos.x;
 		drawInfo.pVertices[index].y = vecTempPlyVerts[index].pos.y;
 		drawInfo.pVertices[index].z = vecTempPlyVerts[index].pos.z;
+		drawInfo.pVertices[index].w = 1.0f;
+
+		drawInfo.pVertices[index].nx = vecTempPlyVerts[index].normal.x;
+		drawInfo.pVertices[index].ny = vecTempPlyVerts[index].normal.y;
+		drawInfo.pVertices[index].nz = vecTempPlyVerts[index].normal.z;
+		drawInfo.pVertices[index].nw = 1.0f;
 
 		drawInfo.pVertices[index].r = vecTempPlyVerts[index].colour.r;
 		drawInfo.pVertices[index].g = vecTempPlyVerts[index].colour.g;
 		drawInfo.pVertices[index].b = vecTempPlyVerts[index].colour.b;
+		drawInfo.pVertices[index].a = vecTempPlyVerts[index].colour.a;
+
+		drawInfo.pVertices[index].u1 = vecTempPlyVerts[index].textUV.x;
+		drawInfo.pVertices[index].v1 = vecTempPlyVerts[index].textUV.y;
+		drawInfo.pVertices[index].u2 = vecTempPlyVerts[index].textUV.x;
+		drawInfo.pVertices[index].v2 = vecTempPlyVerts[index].textUV.y;
+
 	}// for ( unsigned int index...
 
 

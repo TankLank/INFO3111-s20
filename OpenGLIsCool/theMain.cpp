@@ -16,7 +16,7 @@
 #include <fstream>
 #include <sstream>
 #include "cShaderManager.h"
-#include "cVAOManager.h"            // NEW!
+#include "cVAOManager.h"
 #include <string>
 
 #include "cMeshObject.h"
@@ -31,6 +31,35 @@ glm::vec3 g_upVector = glm::vec3(0.0f, 1.0f, 0.0f);
 std::vector< cMeshObject* > g_pVecObjects;
 
 int selectedObject = 0;
+
+// this is a light structure to match what's in the shader
+struct sLight
+{
+    sLight() 
+    {
+        this->position.x = 10.0f;
+        this->position.y = 10.0f;
+        this->position.z = 10.0f;
+        this->position.w = 1.0f;
+        this->atten.y = 0.01f;
+
+        this->diffuse.r = 1.0f;
+        this->diffuse.g = 1.0f;
+        this->diffuse.b = 1.0f;
+    }
+    glm::vec4 position;
+    glm::vec4 diffuse;
+    glm::vec4 specular;	// rgb = highlight colour, w = power
+    glm::vec4 atten;		// x = constant, y = linear, z = quadratic, w = DistanceCutOff
+    glm::vec4 direction;	// Spot, directional lights
+    glm::vec4 param1;	// x = lightType, y = inner angle, z = outer angle, w = TBD
+                    // 0 = pointlight
+                    // 1 = spot light
+                    // 2 = directional light
+    glm::vec4 param2;	// x = 0 for off, 1 for on
+};
+
+sLight* g_theLights = 0;
 
 //struct sVertex
 //{
@@ -168,40 +197,114 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     //      - SW are "forward and back"
     //      - QE are "up and down"
 
-    if (key == GLFW_KEY_U && action == GLFW_PRESS)
-    {
-        selectedObject++;
-        if (selectedObject == ::g_pVecObjects.size())
-        {
-            selectedObject = 0;
-        }
-    }
-
-    if (key == GLFW_KEY_I && action == GLFW_PRESS)
-    {
-        selectedObject--;
-        if (selectedObject < 0)
-        {
-            selectedObject = (::g_pVecObjects.size() - 1);
-        }
-    }
-
-
-    if (key == GLFW_KEY_O)
+    /*if (key == GLFW_KEY_O)
     {
         ::g_pVecObjects[selectedObject]->scale *= 1.5f;
     }
     if (key == GLFW_KEY_P)
     {
         ::g_pVecObjects[selectedObject]->scale /= 1.5f;
-    }
+    }*/
 
-    if (key == GLFW_KEY_K)
+    // camera + light controls -----------------------------------------
+    if (key == GLFW_KEY_A && (mods & GLFW_MOD_SHIFT)) // go "left" (+ve x) light
     {
-        ::g_pVecObjects[selectedObject]->orientation.z -= glm::radians(CAMERASPEED);
+        ::g_theLights->position.x -= CAMERASPEED;
+    }
+    else if (key == GLFW_KEY_A) // go "left" camera
+    {
+        ::g_cameraEye.x -= CAMERASPEED;
     }
 
-    //MOVE SELECTED MODEL
+    if (key == GLFW_KEY_D && (mods & GLFW_MOD_SHIFT)) // go "right"
+    {
+        ::g_theLights->position.x += CAMERASPEED;
+    }
+    else if (key == GLFW_KEY_D) // go "right"
+    {
+        ::g_cameraEye.x += CAMERASPEED;
+    }
+
+    if (key == GLFW_KEY_S && (mods & GLFW_MOD_SHIFT)) // go "back" (-ve y) light
+    {
+        ::g_theLights->position.z -= CAMERASPEED;
+    }
+    else if (key == GLFW_KEY_S) // go "back" (-ve Z) camera
+    {
+        ::g_cameraEye.z -= CAMERASPEED;
+    }
+
+    if (key == GLFW_KEY_W && (mods & GLFW_MOD_SHIFT)) // go "forward" (+ve y) light
+    {
+        ::g_theLights->position.z += CAMERASPEED;
+    } 
+    else if (key == GLFW_KEY_W) // go "forward" (+ve Z) camera
+    {
+        ::g_cameraEye.z += CAMERASPEED;
+    }
+
+    if (key == GLFW_KEY_Q && (mods & GLFW_MOD_SHIFT)) //go "down" (-ve y) light
+    {
+        ::g_theLights->position.y -= CAMERASPEED; 
+    }
+    else if (key == GLFW_KEY_Q) // go "down" (-ve Y)
+    {
+        ::g_cameraEye.y -= CAMERASPEED;
+    }
+
+    if (key == GLFW_KEY_E && (mods & GLFW_MOD_SHIFT)) //go "up" (-ve y) light
+    {
+        ::g_theLights->position.y += CAMERASPEED; 
+    }
+    else if (key == GLFW_KEY_E) // go "up" (-ve Y)
+    {
+        ::g_cameraEye.y += CAMERASPEED;
+    }
+    // end camera + light control ==================================
+
+    //attenuation and color of light -------------------------------
+    if (key == GLFW_KEY_EQUAL)
+    {
+        ::g_theLights->atten.y *= 1.01f;
+    }
+    if (key == GLFW_KEY_MINUS) 
+    {
+        ::g_theLights->atten.y *= 0.99f;
+    }
+    if (key == GLFW_KEY_1 && (mods & GLFW_MOD_SHIFT)) 
+    {
+        if(::g_theLights->diffuse.r < 1.0f)
+            ::g_theLights->diffuse.r += 0.01f;
+    }
+    else if (key == GLFW_KEY_1)
+    {
+        if (::g_theLights->diffuse.r > 0.0f)
+            ::g_theLights->diffuse.r -= 0.01f;
+    }
+    if (key == GLFW_KEY_2 && (mods & GLFW_MOD_SHIFT))
+    {
+        if (::g_theLights->diffuse.g < 1.0f)
+            ::g_theLights->diffuse.g += 0.01f;
+    }
+    else if (key == GLFW_KEY_2)
+    {
+        if (::g_theLights->diffuse.g > 0.0f)
+            ::g_theLights->diffuse.g -= 0.01f;
+    }
+    if (key == GLFW_KEY_3 && (mods & GLFW_MOD_SHIFT))
+    {
+        if (::g_theLights->diffuse.b < 1.0f)
+            ::g_theLights->diffuse.b += 0.01f;
+    }
+    else if (key == GLFW_KEY_3)
+    {
+        if (::g_theLights->diffuse.b > 0.0f)
+            ::g_theLights->diffuse.b -= 0.01f;
+    }
+
+    //-------------------------------------------------------------
+
+    //SELECTED MODEL ----------------------------------------------
     if (key == GLFW_KEY_LEFT) // go "left"
     {
         ::g_pVecObjects[selectedObject]->position.x -= CAMERASPEED;
@@ -232,7 +335,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         ::g_pVecObjects[selectedObject]->position.y += CAMERASPEED;
     }
 
-    if (key == GLFW_KEY_L) 
+    if (key == GLFW_KEY_L)
     {
         ::g_pVecObjects[selectedObject]->orientation.z += glm::radians(CAMERASPEED);
     }
@@ -241,36 +344,27 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     {
         ::g_pVecObjects[selectedObject]->orientation.z -= glm::radians(CAMERASPEED);
     }
-
-    if (key == GLFW_KEY_A) // go "left"
-    {   
-        ::g_cameraEye.x -= CAMERASPEED;
-    }
-
-    if (key == GLFW_KEY_D) // go "right"
+    
+    // Model selection
+    if (key == GLFW_KEY_U && action == GLFW_PRESS)
     {
-        ::g_cameraEye.x += CAMERASPEED;
+        selectedObject++;
+        if (selectedObject == ::g_pVecObjects.size())
+        {
+            selectedObject = 0;
+        }
     }
 
-    if (key == GLFW_KEY_S) // go "back" (-ve Z)
+    if (key == GLFW_KEY_I && action == GLFW_PRESS)
     {
-        ::g_cameraEye.z -= CAMERASPEED;
+        selectedObject--;
+        if (selectedObject < 0)
+        {
+            selectedObject = (::g_pVecObjects.size() - 1);
+        }
     }
 
-    if (key == GLFW_KEY_W) // go "forward" (+ve Z)
-    {
-        ::g_cameraEye.z += CAMERASPEED;
-    }
-
-    if (key == GLFW_KEY_Q) // go "down" (-ve Y)
-    {
-        ::g_cameraEye.y -= CAMERASPEED;
-    }
-
-    if (key == GLFW_KEY_E) // go "up" (-ve Y)
-    {
-        ::g_cameraEye.y += CAMERASPEED;
-    }
+    // endof selected object ================================
 
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
@@ -305,13 +399,27 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
             thePlyFile << " ";
             thePlyFile << pCurMesh->position.z;
             thePlyFile << " ";
+            thePlyFile << pCurMesh->position.w;
+            thePlyFile << " ";
+            thePlyFile << pCurMesh->normal.x;
+            thePlyFile << " ";
+            thePlyFile << pCurMesh->normal.y;
+            thePlyFile << " ";
+            thePlyFile << pCurMesh->normal.z;
+            thePlyFile << " ";
+            thePlyFile << pCurMesh->normal.w;
+            thePlyFile << " ";
             thePlyFile << pCurMesh->colourRGBA.r;
             thePlyFile << " ";
             thePlyFile << pCurMesh->colourRGBA.g;
             thePlyFile << " ";
             thePlyFile << pCurMesh->colourRGBA.b;
-            thePlyFile << " "; thePlyFile << " ";
+            thePlyFile << " ";
             thePlyFile << pCurMesh->colourRGBA.a;
+            thePlyFile << " ";
+            thePlyFile << pCurMesh->textUV.x;
+            thePlyFile << " ";
+            thePlyFile << pCurMesh->textUV.y;
             thePlyFile << " ";
             thePlyFile << pCurMesh->orientation.x;
             thePlyFile << " ";
@@ -352,10 +460,17 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
                 thePlyFile >> newMesh->position.x;
                 thePlyFile >> newMesh->position.y;
                 thePlyFile >> newMesh->position.z;
+                thePlyFile >> newMesh->position.w;
+                thePlyFile >> newMesh->normal.x;
+                thePlyFile >> newMesh->normal.y;
+                thePlyFile >> newMesh->normal.z;
+                thePlyFile >> newMesh->normal.w;
                 thePlyFile >> newMesh->colourRGBA.r;
                 thePlyFile >> newMesh->colourRGBA.g;
                 thePlyFile >> newMesh->colourRGBA.b;
                 thePlyFile >> newMesh->colourRGBA.a;
+                thePlyFile >> newMesh->textUV.x;
+                thePlyFile >> newMesh->textUV.y;
                 thePlyFile >> newMesh->orientation.x;
                 thePlyFile >> newMesh->orientation.y;
                 thePlyFile >> newMesh->orientation.z;
@@ -379,8 +494,17 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         << ::g_cameraEye.y << ", "
         << ::g_cameraEye.z << std::endl;
 
+    // Print out light location:
+    //glfwSetWindowTitle(window, ::g_theLights->position.x); //doesn't exist?
+    std::cout << "light: "
+        << ::g_theLights->position.x << ", "
+        << ::g_theLights->position.y << ", "
+        << ::g_theLights->position.z << std::endl;
+
     return;
 }
+
+
 
 int main(void)
 {
@@ -408,7 +532,7 @@ int main(void)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
     std::cout << "About to create window..." << std::endl;
-    window = glfwCreateWindow(1024, 700, "9 is wireframe, 0 is solid", NULL, NULL);
+    window = glfwCreateWindow(1024, 700, "Checkpoint #6", NULL, NULL);
     if (!window)
     {
         // Can't init openGL. Oh no. 
@@ -550,7 +674,7 @@ int main(void)
     pShuttle01->meshName = "assets/models/SpaceShuttleOrbiter_xyz_n_rgba_uv.ply";
     pShuttle01->position.x = -10.0f;
     pShuttle01->scale = 1.0f/100.0f;    // 100th of it's normal size
-    pShuttle01->colourRGBA = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+    pShuttle01->colourRGBA = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     //pShuttle01->orientation
     ::g_pVecObjects.push_back( pShuttle01 );
 
@@ -558,7 +682,7 @@ int main(void)
     pShuttle02->meshName = "assets/models/SpaceShuttleOrbiter_xyz_n_rgba_uv.ply";
     pShuttle02->position.x = +10.0f;
     pShuttle02->scale = 1.0f/100.0f;    // 100th of it's normal size
-    pShuttle02->colourRGBA = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+    pShuttle02->colourRGBA = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     ::g_pVecObjects.push_back( pShuttle02 );
 
     cMeshObject* pBunny = new cMeshObject();
@@ -572,50 +696,37 @@ int main(void)
     pArena->meshName = "assets/models/free_arena_ASCII_xyz_n_rgba_uv.ply";
     pArena->position.y = -20.0f;
     pArena->scale = 1.0f;
-    pArena->colourRGBA = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    pArena->colourRGBA = glm::vec4(139.0f/255.0f, 69.0f/255.0f, 19.0f/255.0f, 1.0f);
     ::g_pVecObjects.push_back(pArena);
-
-    cMeshObject* pCow = new cMeshObject();
-    pCow->meshName = "assets/models/cow_xyz_n_rgba_uv.ply";
-    pCow->position.y = +20.0f;
-    pCow->scale = 1.0f;
-    ::g_pVecObjects.push_back(pCow);
-
-    cMeshObject* pHomer1 = new cMeshObject();
-    pHomer1->meshName = "assets/models/homer_xyz_n_rgba_uv.ply";
-    pHomer1->position.x = +20.0f;
-    pHomer1->scale = 10.0f;
-    ::g_pVecObjects.push_back(pHomer1);
-
-    cMeshObject* pHomer2 = new cMeshObject();
-    pHomer2->meshName = "assets/models/homer_xyz_n_rgba_uv.ply";
-    pHomer2->position.x = -20.0f;
-    pHomer2->scale = 10.0f;
-    ::g_pVecObjects.push_back(pHomer2);
-
-    cMeshObject* pJet1 = new cMeshObject();
-    pJet1->meshName = "assets/models/ssj100_xyz_n_rgba_uv.ply";
-    pJet1->position.x = -30.0f;
-    pJet1->scale = 10.0f;
-    ::g_pVecObjects.push_back(pJet1);
-
-    cMeshObject* pJet2 = new cMeshObject();
-    pJet2->meshName = "assets/models/ssj100_xyz_n_rgba_uv.ply";
-    pJet2->position.x = 30.0f;
-    pJet2->scale = 10.0f;
-    ::g_pVecObjects.push_back(pJet2);
 
     cMeshObject* pMountain = new cMeshObject();
     pMountain->meshName = "assets/models/Mountain_Terrain_xyz_n_rgba_uv.ply";
-    pMountain->position.y = 0.0f;
+    pMountain->position.y = -50.0f;
     pMountain->scale = 1.0f;
-    pMountain->isWireframe = true;
+   // pMountain->isWireframe = true;
+    pMountain->colourRGBA = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
     ::g_pVecObjects.push_back(pMountain);
 
     //Get the locations for the "uniform variables"
     // uniform vec4 objectColour;
 
-    GLint objectColour_LocID = glGetUniformLocation(program, "objectColour");
+    GLint diffuseColour_LocID = glGetUniformLocation(program, "diffuseColour");
+
+    GLint matModel_LocID = glGetUniformLocation(program, "matModel");
+    GLint matView_LocID = glGetUniformLocation(program, "matView");
+    GLint matProj_LocID = glGetUniformLocation(program, "matProj");
+
+    // get the uniform locations for the lights
+    GLint theLights_0_position_LocID = glGetUniformLocation(program, "theLights[0].position");
+    GLint theLights_0_diffuse_LocID = glGetUniformLocation(program, "theLights[0].diffuse");
+    GLint theLights_0_specular_LocID = glGetUniformLocation(program, "theLights[0].specular");
+    GLint theLights_0_atten_LocID = glGetUniformLocation(program, "theLights[0].atten");
+    GLint theLights_0_direction_LocID = glGetUniformLocation(program, "theLights[0].direction");
+    GLint theLights_0_param1_LocID = glGetUniformLocation(program, "theLights[0].param1");
+    GLint theLights_0_param2_LocID = glGetUniformLocation(program, "theLights[0].param2");
+
+    //create theLights variable
+    ::g_theLights = new sLight();
 
     std::cout << "We're all set! Buckle up!" << std::endl;
 
@@ -624,7 +735,9 @@ int main(void)
         float ratio;
         int width, height;
         //       mat4x4 m, p, mvp;
-        glm::mat4 matModel, p, v, mvp;
+        glm::mat4 matModel;
+        glm::mat4 matProjection;
+        glm::mat4 matView;
 
         glfwGetFramebufferSize(window, &width, &height);
         ratio = width / (float)height;
@@ -645,21 +758,31 @@ int main(void)
 //       m = m * rotateZ;
 
         //mat4x4_ortho(p, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
-        p = glm::perspective(0.6f,
-                             ratio,
-                             0.1f,          // Near plane
-                             10000.0f);      // Far plane
+        matProjection = glm::perspective( 0.6f,
+                                          ratio,
+                                          0.1f,          // Near plane
+                                          10000.0f);      // Far plane
 
-        v = glm::mat4(1.0f);
+        matView = glm::mat4(1.0f);
 
         //glm::vec3 cameraEye = glm::vec3(0.0, 0.0, -4.0f);
         //glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
         //glm::vec3 upVector = glm::vec3(0.0f, 1.0f, 0.0f);
 
-         v = glm::lookAt( ::g_cameraEye,     // "position" "eye"
+         matView = glm::lookAt( ::g_cameraEye,     // "position" "eye"
                          ::g_cameraTarget,  // "at"  (looking "at")
                          ::g_upVector );    
 
+         
+
+         // set the lighting for the scene
+         glUniform4f(theLights_0_position_LocID, ::g_theLights->position.x, ::g_theLights->position.y, ::g_theLights->position.z, ::g_theLights->position.w); //theLights[0].position
+         glUniform4f(theLights_0_diffuse_LocID, ::g_theLights->diffuse.r, ::g_theLights->diffuse.g, ::g_theLights->diffuse.b, 1.0f);     //theLights[0].diffuse
+         glUniform4f(theLights_0_specular_LocID, 1.0f, 1.0f, 1.0f, 1.0f);
+         glUniform4f(theLights_0_atten_LocID, 0.0f, ::g_theLights->atten.y, 0.0f, 1.0f); //x = dim, y = atten (how much light drops off), z = quadratic atten
+         glUniform4f(theLights_0_direction_LocID, 0.0f, 0.0f, 0.0f, 0.0f);
+         glUniform4f(theLights_0_param1_LocID, 0.0f, 0.0f, 0.0f, 0.0f);
+         glUniform4f(theLights_0_param2_LocID, 1.0f, 0.0f, 0.0f, 1.0f); //theLights[0].param2       x = 1.0f for on, 0.0f for off
 
         // *******************************************
         // **** Draw the entire scene of objects *****
@@ -728,8 +851,12 @@ int main(void)
             //*********************************
 
             //mat4x4_mul(mvp, p, m);
-            mvp = p * v * matModel;
-
+            //mvp = p * v * matModel;
+            //glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
+            //glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
+            glUniformMatrix4fv(matModel_LocID, 1, GL_FALSE, glm::value_ptr(matModel));
+            glUniformMatrix4fv(matView_LocID, 1, GL_FALSE, glm::value_ptr(matView));
+            glUniformMatrix4fv(matProj_LocID, 1, GL_FALSE, glm::value_ptr(matProjection));
 
             glUseProgram(program);
 
@@ -745,13 +872,9 @@ int main(void)
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);  // Solid
             }
 
-
-            //glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
-            glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
-
             // set the uniform colour info
-            glUniform4f(objectColour_LocID, pCurMesh->colourRGBA.r, pCurMesh->colourRGBA.g,
-                                            pCurMesh->colourRGBA.b, pCurMesh->colourRGBA.a);
+            glUniform3f(diffuseColour_LocID, pCurMesh->colourRGBA.r, pCurMesh->colourRGBA.g,
+                                            pCurMesh->colourRGBA.b);
 
             sModelDrawInfo mdoModelToDraw;
             if (::g_pTheVAOManager->FindDrawInfoByModelName( pCurMesh->meshName,

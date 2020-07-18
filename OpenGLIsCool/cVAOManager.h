@@ -10,10 +10,32 @@
 // The vertex structure 
 //	that's ON THE GPU (eventually) 
 // So dictated from THE SHADER
-struct sVert
+//struct sVert_xyzw_rgba
+//{
+//	sVert_xyzw_rgba() 
+//	{
+//		this->x = this->y = this->z = this->w = 0.0f;
+//		this->r = this->g = this->b = this->a = 0.0f;
+//		return;
+//	}
+//	float x, y, z, w;		// added "w"
+//	float r, g, b, a;		// added "a" for alpha
+//};
+
+struct sVert_xyzw_n_rgba_UVx2
 {
-	float x, y, z;		// added "z"
-	float r, g, b;
+	sVert_xyzw_n_rgba_UVx2()
+	{
+		this->x = this->y = this->z = this->w = 0.0f;
+		this->nx = this->ny = this->nz = this->nw = 0.0f;
+		this->r = this->g = this->b = this->a = 0.0f;
+		this->u1 = this->v1 = this->u2 = this->v2 = 0.0f;
+		return;
+	}
+	float x, y, z, w;		// added "w"
+	float nx, ny, nz, nw;	// ignore 4th element
+	float r, g, b, a;		// added "a" for alpha
+	float u1, v1, u2, v2;	// 2 sets of texture ("UV") coordinates
 };
 
 
@@ -43,7 +65,7 @@ struct sModelDrawInfo
 	float scaleForUnitBB;			// 1.0 / maxExtent
 
 	// The "local" (i.e. "CPU side" temporary array)
-	sVert* pVertices;	//  = 0;
+	sVert_xyzw_n_rgba_UVx2* pVertices;	//  = 0;
 	// The index buffer (CPU side)
 	unsigned int* pIndices;
 };
