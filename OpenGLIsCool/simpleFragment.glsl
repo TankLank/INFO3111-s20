@@ -27,14 +27,19 @@ const int POINT_LIGHT_TYPE = 0;
 const int SPOT_LIGHT_TYPE = 1;
 const int DIRECTIONAL_LIGHT_TYPE = 2;
 
-//const int NUMBEROFLIGHTS = 10;
-const int NUMBEROFLIGHTS = 1;
+const int NUMBEROFLIGHTS = 2;
+//const int NUMBEROFLIGHTS = 1;
 uniform sLight theLights[NUMBEROFLIGHTS];  	// 80 uniforms
 
 uniform vec3 diffuseColour;
 uniform vec4 specularColour;
 
 uniform vec4 eyeLocation;
+
+// if this is true, then dont apply the lighting calculation
+// (used for wireframe and debug type objects)
+// (bool is really a float, either 0.0 or non-zero)
+uniform bool hasNoLighting;
 
 vec4 calcualteLightContrib( vec3 vertexMaterialColour, vec3 vertexNormal, 
                             vec3 vertexWorldPos, vec4 vertexSpecular );
@@ -48,10 +53,19 @@ void main()
 	
 //	outputColour = fColour;
 	
+
+	if(hasNoLighting)
+	{
+		outputColour.rgb = diffuseColour.rgb;
+		outputColour.a = 1.0f;
+	} 
+	else 
+	{
 	outputColour = calcualteLightContrib( diffuseColour, 
 	                                       vec3(fNormal.xyz),
 										   vec3(fVertWorldPos),
 										   vec4(1.0f, 1.0f, 1.0f, 1.0f) );
+	}
 	
 }
 

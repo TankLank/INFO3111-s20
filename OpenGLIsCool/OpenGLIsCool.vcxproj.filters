@@ -15,6 +15,9 @@
     <Filter Include="VAO and Model">
       <UniqueIdentifier>{d5277e28-bb31-4969-ad2d-269acb70b7f5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="LightManager">
+      <UniqueIdentifier>{4d1eba60-8280-4e86-82c8-9583703ed1bf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="theMain.cpp">
@@ -35,6 +38,18 @@
     <ClCompile Include="cMeshObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LoadModels.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IOKeyboardMouse.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LightManager\cLightHelper.cpp">
+      <Filter>LightManager</Filter>
+    </ClCompile>
+    <ClCompile Include="LightManager\cLightManager.cpp">
+      <Filter>LightManager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cShaderManager.h">
@@ -48,6 +63,15 @@
     </ClInclude>
     <ClInclude Include="cMeshObject.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="globalThings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LightManager\cLightHelper.h">
+      <Filter>LightManager</Filter>
+    </ClInclude>
+    <ClInclude Include="LightManager\cLightManager.h">
+      <Filter>LightManager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

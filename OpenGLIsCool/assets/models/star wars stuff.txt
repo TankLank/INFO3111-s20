@@ -1,0 +1,6 @@
+ assets/models/atat_xyz_n_rgba_uv.ply -28 -27 78 0 0 0 0 0 1 1 1 1 0 0 0 -1.01229 0 1 0 1 UNASSIGNED
+ assets/models/StarWarsSnowspeeder_xyz_n_rgba_uv.ply -29 -16 66 0 0 0 0 0 1 1 1 1 0 0 -0.802852 3.38593 1.22173 0.01 0 1 UNASSIGNED
+ assets/models/StarWarsSnowspeeder_xyz_n_rgba_uv.ply -29 -20 68 0 0 0 0 0 1 1 1 1 0 0 -1.309 2.6878 -0.680679 0.01 0 1 UNASSIGNED
+ assets/models/StarWarsSnowspeeder_xyz_n_rgba_uv.ply -33 -24 73 0 0 0 0 0 1 1 1 1 0 0 -0.872665 2.42601 -0.349066 0.01 0 1 UNASSIGNED
+ assets/models/ISO_Shphere_flat_4div_xyz_n_rgba_uv.ply 8 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 1 1 0 DebugSphere
+ assets/models/Mountain_Terrain_xyz_n_rgba_uv.ply 6 -38 0 0 0 0 0 0 1 1 1 1 0 0 0 -0.0349066 -0.20944 1 0 1 UNASSIGNED
